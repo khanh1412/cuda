@@ -1,3 +1,4 @@
 # cuda
 
-Just some code for gpu computing
+Cuda abstraction in C++
+
