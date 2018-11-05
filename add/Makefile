@@ -1,6 +1,6 @@
-all: cpu gpu
-
 cpu:
-	g++ -o cpu add.c
+	g++ -o run add.c
 gpu:
-	nvcc -ccbin cuda-g++ -o gpu add.cu
+	nvcc -ccbin cuda-g++ -o run add.cu
+gpu3d:
+	nvcc -ccbin cuda-g++ -o run add3d.cu
