@@ -3,7 +3,7 @@
 #include<stdio.h>
 #include<ctime>
 
-int *perm;
+unsigned char *perm;
 int count = 0;
 
 void print(int a[], int n)
@@ -50,16 +50,16 @@ void matrix_randomizer(float *arr, int size)
 	}
 }
 
-float cpu_call(float *arr, int *perm, float *result, int size, int total_threads)
+float cpu_call(float *arr, unsigned char *perm, float *result, int size, int total_threads)
 {
 	auto t1 = std::clock();
 	for (int id=0; id<total_threads; id++)
 	{
 		//permutation
-		int *pos = perm + id*size;
+		unsigned char *pos = perm + id*size;
 		//traversal
 		float cost = 0;
-		int last, curr;
+		unsigned char last, curr;
 	
 		for (int i=0; i<size-1; i++)
 		{	
@@ -76,7 +76,7 @@ float cpu_call(float *arr, int *perm, float *result, int size, int total_threads
 	return static_cast<float>(t2-t1)/CLOCKS_PER_SEC;
 
 }
-__global__ void TSP(int *perm, float *result, float *arr, int size, int total_threads)
+__global__ void TSP(unsigned char *perm, float *result, float *arr, int size, int total_threads)
 {
 	int block_id = blockIdx.x;
 	int thread_id = threadIdx.x;
@@ -84,10 +84,10 @@ __global__ void TSP(int *perm, float *result, float *arr, int size, int total_th
 	int id = thread_id + block_id * threads;
 	if (id >= total_threads) return;
 	//permutation
-	int *pos = perm + id*size;
+	unsigned char *pos = perm + id*size;
 	//traversal
 	float cost = 0;
-	int last, curr;
+	unsigned char last, curr;
 	
 	for (int i=0; i<size-1; i++)
 	{	
@@ -100,7 +100,7 @@ __global__ void TSP(int *perm, float *result, float *arr, int size, int total_th
 	cost += arr[last*size + curr];
 	result[id] = cost;
 }
-float gpu_call(float *arr, int *perm, float *result, int size, int total_threads)
+float gpu_call(float *arr, unsigned char *perm, float *result, int size, int total_threads)
 {
 	cudaDeviceProp prop;
 	cudaGetDeviceProperties(&prop, 0);
@@ -111,11 +111,11 @@ float gpu_call(float *arr, int *perm, float *result, int size, int total_threads
 	dim3 ThreadsPerBlock(MaxThreadsPerBlock,1,1);
 
 	float *d_arr; cudaMalloc(&d_arr, size*size*sizeof(float));
-	int *d_perm; cudaMalloc(&d_perm, total_threads*size*sizeof(float));
+	unsigned char *d_perm; cudaMalloc(&d_perm, total_threads*size*sizeof(unsigned char));
 	float *d_result; cudaMalloc(&d_result, total_threads*sizeof(float));
 
-
-	cudaMemcpy(d_perm, perm, total_threads*size*sizeof(float), cudaMemcpyHostToDevice);
+	auto t0 = std::clock();
+	cudaMemcpy(d_perm, perm, total_threads*size*sizeof(unsigned char), cudaMemcpyHostToDevice);
 	auto t1 = std::clock();
 	cudaMemcpy(d_arr, arr, size*size*sizeof(float), cudaMemcpyHostToDevice);
 		TSP<<<BlocksPerGrid, ThreadsPerBlock>>>(d_perm, d_result, d_arr, size, total_threads);
@@ -125,7 +125,7 @@ float gpu_call(float *arr, int *perm, float *result, int size, int total_threads
 	cudaFree(d_arr);
 	cudaFree(d_perm);
 	cudaFree(d_result);
-
+	std::cout<<"table copying time "<<1000000*static_cast<float>(t1-t0)/CLOCKS_PER_SEC<<" (microsec)"<<std::endl;
 	return static_cast<float>(t2-t1)/CLOCKS_PER_SEC;
 }
 
@@ -145,7 +145,7 @@ int main(int argc, char *argv[])
 	for (int i=2; i<=size; i++)
 		total_threads *= i;
 
-	perm = new int[total_threads*size];
+	perm = new unsigned char[total_threads*size];
 
 	int *a = new int[size];
 	for (int i=0; i<size; i++)
