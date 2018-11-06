@@ -1,7 +1,7 @@
 #include<random>
 #include<iostream>
 
-__global__ void TSP(int *perm, float *result, float *d_arr, int size, int total_threads)
+__global__ void TSP(int *perm, float *result, float *arr, int size, int total_threads)
 {
 	int block_id = blockIdx.x;
 	int thread_id = threadIdx.x;
@@ -9,15 +9,16 @@ __global__ void TSP(int *perm, float *result, float *d_arr, int size, int total_
 	int id = thread_id + block_id * threads;
 	if (id >= total_threads) return;
 	//copy data to shared memory
-	extern __shared__ float arr[];
+	extern __shared__ float s_arr[];
 	for (int i=thread_id; i<total_threads; i+= threads)
 	{
-		arr[i] = d_arr[i];
+		s_arr[i] = arr[i];
 	}
 
 	__syncthreads();
 	//permutation
 	int *pos = perm + id*size;
+	//traversal
 	float cost = 0;
 	int last, curr;
 	
@@ -25,11 +26,11 @@ __global__ void TSP(int *perm, float *result, float *d_arr, int size, int total_
 	{
 		last = pos[i];
 		curr = pos[i+1];
-		cost += arr[last*size + curr];
+		cost += s_arr[last*size + curr];
 	}
 	last = pos[size-1];
 	curr = pos[0];
-	cost += arr[last*size + curr];
+	cost += s_arr[last*size + curr];
 
 	result[id] = cost;
 }
@@ -89,14 +90,14 @@ int main()
 	int size = 10;
 	float density = 0.5;
 
-	float *h_arr = new float[size*size];
-	matrix_randomizer(density, h_arr, size);
+	float *arr = new float[size*size];
+	matrix_randomizer(density, arr, size);
 
-	int threads = 1;
+	int total_threads = 1;
 	for (int i=2; i<=size; i++)
-		threads *= i;
+		total_threads *= i;
 
-	perm = new int[threads*size];
+	perm = new int[total_threads*size];
 
 	int *a = new int[size];
 	for (int i=0; i<size; i++)
@@ -105,13 +106,15 @@ int main()
 	heapPermutation(a, size, size);
 	std::cout<<"permutation done!"<<std::endl;
 
+	delete a;
+
 	size_t bytes = size*size*sizeof(float);
 	float *d_arr; cudaMalloc(&d_arr, bytes);
-	int *d_perm; cudaMalloc(&d_perm, threads*size*sizeof(float));
-	float *d_result; cudaMalloc(&d_result, threads*sizeof(float));
+	int *d_perm; cudaMalloc(&d_perm, total_threads*size*sizeof(float));
+	float *d_result; cudaMalloc(&d_result, total_threads*sizeof(float));
 
-	cudaMemcpy(d_arr, h_arr, bytes, cudaMemcpyHostToDevice);
-	cudaMemcpy(d_perm, perm, threads*size*sizeof(float), cudaMemcpyHostToDevice);
+	cudaMemcpy(d_arr, arr, bytes, cudaMemcpyHostToDevice);
+	cudaMemcpy(d_perm, perm, total_threads*size*sizeof(float), cudaMemcpyHostToDevice);
 
 
 
@@ -119,32 +122,38 @@ int main()
 	cudaGetDeviceProperties(&prop, 0);
 	int MaxThreadsPerBlock = prop.maxThreadsPerBlock;
 
-	int HmBlocks = 1 + threads/MaxThreadsPerBlock;
+	int HmBlocks = 1 + total_threads/MaxThreadsPerBlock;
 
 
 	dim3 BlocksPerGrid(HmBlocks, 1, 1);
 	dim3 ThreadsPerBlock(MaxThreadsPerBlock,1,1);
 
-	TSP<<<BlocksPerGrid, ThreadsPerBlock, bytes>>>(d_perm, d_result, d_arr, size, threads);
+	TSP<<<BlocksPerGrid, ThreadsPerBlock, bytes>>>(d_perm, d_result, d_arr, size, total_threads);
 
 
-	float *result = new float[threads];
+	float *result = new float[total_threads];
+	cudaMemcpy(result, d_result, total_threads*sizeof(float), cudaMemcpyDeviceToHost);
 
-	cudaMemcpy(result, d_result, threads*sizeof(float), cudaMemcpyDeviceToHost);
+	cudaFree(d_arr);
+	cudaFree(d_perm);
+	cudaFree(d_result);
+
+
 	
 	count = 0;
-	for (int i=0; i<threads; i++)
+	for (int i=0; i<total_threads; i++)
 	{
-		std::cout<<result[i]<<" : [";
+		std::cout<<"[";
 		for (int j=0; j<size; j++)
 		{
 			std::cout<<perm[count]<<" ";
 			count++;
 		}
-		std::cout<<"]"<<std::endl;
+		std::cout<<"]";
+		std::cout<<result[i]>>std::endl;
 	}
 
-
-
+	delete perm;
+	delete arr;
 
 }	
