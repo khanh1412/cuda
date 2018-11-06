@@ -1,4 +1,4 @@
 # cuda
 
-Cuda abstraction in C++
+Travelling Salesman Problem with Cuda
 
