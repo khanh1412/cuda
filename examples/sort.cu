@@ -30,15 +30,15 @@ __global__ void radix(int *arr, int *buckets, int hm_buckets, int hm_rounds, int
 {
 	int threadID = threadIdx.x;
 
+	//CLEAR BUCKETS
+	for (int bucketID=0; bucketID<hm_buckets; bucketID++)
+		buckets[hm_threads * bucketID + threadID] = -1;	
+	__syncthreads();
 
 	//START ROUNDS
 	int value = arr[threadID];
 	for (int roundID=0; roundID<hm_rounds; roundID++)
 	{
-		//CLEAR BUCKETS
-		for (int bucketID=0; bucketID<hm_buckets; bucketID++)
-			buckets[hm_threads * bucketID + threadID] = -1;	
-		__syncthreads();
 		//Find the bucketID
 		int bucketID = getBucketID(value, hm_buckets, roundID);
 		//Fill in the buckets
@@ -52,6 +52,7 @@ __global__ void radix(int *arr, int *buckets, int hm_buckets, int hm_rounds, int
 				if (counter == threadID)
 				{
 					value = buckets[i];
+					buckets[i] = -1;
 					break;
 				}
 				else
@@ -90,26 +91,54 @@ void radix_gpu(int *arr, int size, int hm_buckets, int hm_rounds)
 
 	cudaFree(buckets);
 }
+void quicksort(int *arr, int size)
+{
+	if (size<=1) return;
+
+	int pivot = arr[0];
+	int wall = 1;
+	for (int i=1; i<size; i++)
+	{
+		if (arr[i] < pivot)
+		{
+			int temp = arr[i];
+			arr[i] = arr[wall];
+			arr[wall] = temp;
+			wall++;
+		}
+	}
+	{
+		arr[0] = arr[wall-1];
+		arr[wall-1] = pivot;
+	}
+	quicksort(arr, wall-1);
+	quicksort(arr+wall+1, size-wall-1);
+}
 
 
+#include<ctime>
 int main()
 {
-	//std::default_random_engine gen(std::time(nullptr));
-	//std::uniform_int_distribution<int> dist(0, 999);
+	std::default_random_engine gen(std::time(nullptr));
+	std::uniform_int_distribution<int> dist(0, 999);
 
-	int *arr = new int[50];
-	for (int i=0; i<50; i++)
+	int size = 1000;
+
+	int *a1 = new int[size];
+	int *a2 = new int[size];
+	for (int i=0; i<size; i++)
 	{
-		//arr[i] = dist(gen);
-		arr[i] = 50-i;
+		a1[i] = dist(gen);
+		a2[i] = a1[i];
 	}
 
-
-	radix_gpu(arr, 50, 10, 3);
-
-	for (int i=0; i<50; i++)
-		std::printf("%d ", arr[i]);
-
+	std::clock_t t1 = std::clock();
+	radix_gpu(a1, size, 5, 6);
+	std::clock_t t2 = std::clock();
+	quicksort(a2, size);
+	std::clock_t t3 = std::clock();
+	std::printf("cpu : %d\n", t3-t2);
+	std::printf("gpu : %d\n", t2-t1);
 	return 0;
 
 }
