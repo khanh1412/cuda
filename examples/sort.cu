@@ -48,7 +48,7 @@ __global__ void radix(int *arr, int *buckets, int hm_buckets, int hm_rounds, int
 		int counter = 0;
 		for (int i=0; i<hm_threads*hm_buckets; i++)
 		{
-			if (buckets[i] > 0)
+			if (buckets[i] > -0.5)
 				if (counter == threadID)
 				{
 					value = buckets[i];
