@@ -60,24 +60,6 @@ __global__ void radix(int *arr, int *buckets, int hm_buckets_per_block, int hm_r
 /* RADIX SORT
    hm_buckets_per_block^hm_rounds > maximum value in array.
  */
-#include<vector>
-int getMax(std::vector<std::vector<int>*> *set)
-{
-	int max_vec = 0;
-	for (int i=0; i<set->size(); i++)
-	{
-		if (not set->at(i)->empty())
-			max_vec = i;
-	}
-	for (int i=0; i<set->size(); i++)
-	{
-		if ((not set->at(i)->empty()) and set->at(i)->back() > set->at(max_vec)->back())
-			max_vec = i;
-	}
-	int value = set->at(max_vec)->back();
-	set->at(max_vec)->pop_back();
-	return value;
-}
 
 void ext_radix_gpu(int *arr, int size, int hm_buckets_per_block, int hm_rounds)
 {
@@ -99,23 +81,9 @@ void ext_radix_gpu(int *arr, int size, int hm_buckets_per_block, int hm_rounds)
 	cudaFree(buckets);
 
 	std::printf("gpu sort done!\n");
-	if (hm_blocks > 1)//merge
-	{
-		int i=0;
-
-		auto set = new std::vector<std::vector<int>*>();
-		while (i<size)
-		{
-			if (i % hm_threads_per_block == 0)
-				set->push_back(new std::vector<int>());
-			set->back()->push_back(arr[i]);
-			i++;
-		}
-		while (i<size)
-		{
-			arr[i] = getMax(set);
-		}
-	}
+	/////////////////////////
+	//MERGE SORT
+	__builtin_trap();
 }
 
 
