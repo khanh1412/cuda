@@ -1,4 +1,5 @@
 #include<CL/cl.h>
+#include<iostream>
 float data[3] = {1,2,3};
 unsigned int DATA_SIZE = 3;
 #define LENGTH 2
@@ -30,4 +31,5 @@ int main()
 	clEnqueueNDRangeKernel(queue, kernel, 1, nullptr, global_dimensions, nullptr, 0, nullptr, nullptr);
 	clEnqueueReadBuffer(queue, buffer, CL_FALSE, 0, sizeof(cl_float)*LENGTH, data, 0, NULL, NULL);
 	clFinish(queue);
+	std::cout<<data[0]<<" "<<data[1]<<" "<<data[2]<<std::endl;
 }
