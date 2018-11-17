@@ -24,7 +24,7 @@ HDR =	src/error.h \
 VPATH = src
 
 CFLAGS ?= -g -pedantic -Werror
-CFLAGS += -std=c99 -Wall -Wextra -I/usr/local/cuda/include
+CFLAGS += -std=c99 -Wall -Wextra
 
 SPARSE ?= sparse
 SPARSEFLAGS=-Wsparse-all -Wno-decl
@@ -40,7 +40,7 @@ MANDIR ?= $(PREFIX)/man
 MANMODE ?= 444
 
 # Common library includes
-LDLIBS = -lOpenCL -ldl -L/usr/local/cuda/lib64
+LDLIBS = -lOpenCL -ldl
 
 # OS-specific library includes
 LDLIBS_Darwin = -framework OpenCL
