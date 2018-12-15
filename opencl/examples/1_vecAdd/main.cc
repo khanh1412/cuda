@@ -38,7 +38,7 @@ int main()
 	cl::Program::Sources sources;
 
 	// kernel calculates for each element C=A+B
-	std::string kernel_code = readKernel("kernel.cl");
+	std::string kernel_code = readKernel("kernel.cl.c");
 
 	sources.push_back({kernel_code.c_str(), kernel_code.length()});
 
