@@ -20,6 +20,10 @@ int main()
 	if (0 == all_platforms.size())
 		throw std::runtime_error("No platforms found. Check OpenCL installation!");
 
+	std::cout<<"All platforms:"<<std::endl;
+	for (auto& platform : all_platforms)
+		std::cout<<"\t"<<platform.getInfo<CL_PLATFORM_NAME>()<<std::endl;
+
 	cl::Platform default_platform = all_platforms[0];
 	std::cout <<"Using platform: "<<default_platform.getInfo<CL_PLATFORM_NAME>()<<std::endl;
 
@@ -30,6 +34,10 @@ int main()
 	if (0 == all_devices.size())
 		throw std::runtime_error("No devices found. Check OpenCL installation!");
 
+	std::cout<<"Platform's devices:"<<std::endl;
+	for (auto& device : all_devices)
+		std::cout<<"\t"<<device.getInfo<CL_DEVICE_NAME>()<<std::endl;
+
 	cl::Device default_device = all_devices[0];
 	std::cout<<"Using device: "<<default_device.getInfo<CL_DEVICE_NAME>()<<std::endl;
 
@@ -38,7 +46,7 @@ int main()
 	cl::Program::Sources sources;
 
 	// kernel calculates for each element C=A+B
-	std::string kernel_code = readKernel("kernel.cl.c");
+	std::string kernel_code = readKernel("simple_add.cl.c");
 
 	sources.push_back({kernel_code.c_str(), kernel_code.length()});
 
@@ -72,10 +80,12 @@ int main()
 	//read result C from the device to array C
 	queue.enqueueReadBuffer(buffer_C, CL_TRUE, 0, sizeof(int)*10, C);
 
-	std::cout<<" result: \n";
+	std::cout<<"Result:"<<std::endl;
+	std::cout<<"\t";
 	for(int i=0; i<10; i++)
 	{
 		std::cout<<C[i]<<" ";
 	}
+	std::cout<<std::endl;
 	return 0;
 }
