@@ -8,15 +8,9 @@ std::string readKernel(const std::string& filepath)
 {
 	std::ifstream ifs(filepath);
 	std::string content((std::istreambuf_iterator<char>(ifs)), 
-			(std::istreambuf_iterator<char>()));
+			std::istreambuf_iterator<char>());
 	return content;
 }
-
-
-
-
-
-
 
 int main()
 {
