@@ -114,5 +114,6 @@ int main()
 		std::cout<<C[i]<<" ";
 	}
 	std::cout<<std::endl;
+	delete A; delete B; delete C;
 	return 0;
 }
