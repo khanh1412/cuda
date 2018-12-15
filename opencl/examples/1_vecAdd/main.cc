@@ -1,6 +1,23 @@
 #include<CL/cl.hpp>
 #include<iostream>
 #include<stdexcept>
+#include<fstream>
+#include<string>
+
+std::string readKernel(const std::string& filepath)
+{
+	std::ifstream ifs(filepath);
+	std::string content((std::istreambuf_iterator<char>(ifs)), 
+			(std::istreambuf_iterator<char>()));
+	return content;
+}
+
+
+
+
+
+
+
 int main()
 {
 	//get all platforms (driver)
@@ -27,13 +44,7 @@ int main()
 	cl::Program::Sources sources;
 
 	// kernel calculates for each element C=A+B
-	std::string kernel_code =
-		"void kernel simple_add(global const int* A, global const int* B, global int* C)"
-		"{										"
-		"	int i = get_global_id(0);						"
-		"	C[i]=A[i]+B[i];								"
-		"}										";
-
+	std::string kernel_code = readKernel("kernel.cl");
 
 	sources.push_back({kernel_code.c_str(), kernel_code.length()});
 
