@@ -5,7 +5,8 @@
 #include<string>
 
 
-const int COUNT = 20000;
+
+const int COUNT = 200;
 
 std::string readKernel(const std::string& filepath)
 {
@@ -81,6 +82,17 @@ int main()
 		A[i] = i + 1;
 		B[i] = COUNT - i;
 	}
+
+
+	queue.enqueueWriteBuffer(buffer_A, CL_FALSE, 0, COUNT*sizeof(int), A);
+	queue.enqueueWriteBuffer(buffer_B, CL_FALSE, 0, COUNT*sizeof(int), B);
+	//queue.enqueueBarrierWithWaitList();
+	queue.enqueueNDRangeKernel(simple_add, cl::NullRange, cl::NDRange(COUNT, 1, 1), cl::NDRange(1, 1, 1), nullptr, nullptr);
+	//queue.enqueueBarrierWithWaitList();
+	queue.enqueueReadBuffer(buffer_C, CL_FALSE, 0, COUNT*sizeof(int), C);
+	//queue.enqueueBarrierWithWaitList();
+	//queue.finish();
+
 	std::cout<<"A:"<<std::endl;
 	std::cout<<"\t";
 	for(int i=0; i<COUNT; i++)
@@ -95,18 +107,6 @@ int main()
 		std::cout<<B[i]<<" ";
 	}
 	std::cout<<std::endl;
-
-
-	
-	queue.enqueueWriteBuffer(buffer_A, CL_FALSE, 0, COUNT*sizeof(int), A);
-	queue.enqueueWriteBuffer(buffer_B, CL_FALSE, 0, COUNT*sizeof(int), B);
-	//queue.enqueueBarrierWithWaitList();
-	queue.enqueueNDRangeKernel(simple_add, cl::NullRange, cl::NDRange(COUNT, 1, 1), cl::NDRange(1, 1, 1), nullptr, nullptr);
-	//queue.enqueueBarrierWithWaitList();
-	queue.enqueueReadBuffer(buffer_C, CL_FALSE, 0, COUNT*sizeof(int), C);
-	//queue.enqueueBarrierWithWaitList();
-	//queue.finish();
-
 	std::cout<<"Result:"<<std::endl;
 	std::cout<<"\t";
 	for(int i=0; i<COUNT; i++)
