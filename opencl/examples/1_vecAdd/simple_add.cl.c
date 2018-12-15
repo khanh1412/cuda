@@ -3,5 +3,5 @@ void kernel simple_add(global const int* A,
 		       global int* C)
 {
 	int i = get_global_id(0);
-	C[i]=A[i]+B[i];
+	C[i] = A[i] + B[i];
 }
