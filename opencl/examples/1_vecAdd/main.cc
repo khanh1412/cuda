@@ -4,7 +4,8 @@
 #include<fstream>
 #include<string>
 
-#define SIZE 20
+
+const int COUNT = 20;
 
 std::string readKernel(const std::string& filepath)
 {
@@ -72,24 +73,24 @@ int main()
 	cl::CommandQueue queue(context, default_device);
 
 		//generate data
-	int *A = new int[SIZE];
-	int *B = new int[SIZE];
-	int *C = new int[SIZE];
-	for (int i=0; i<SIZE; i++)
+	int *A = new int[COUNT];
+	int *B = new int[COUNT];
+	int *C = new int[COUNT];
+	for (int i=0; i<COUNT; i++)
 	{
 		A[i] = i + 1;
-		B[i] = SIZE - i;
+		B[i] = COUNT - i;
 	}
 	std::cout<<"A:"<<std::endl;
 	std::cout<<"\t";
-	for(int i=0; i<SIZE; i++)
+	for(int i=0; i<COUNT; i++)
 	{
 		std::cout<<A[i]<<" ";
 	}
 	std::cout<<std::endl;
 	std::cout<<"B:"<<std::endl;
 	std::cout<<"\t";
-	for(int i=0; i<SIZE; i++)
+	for(int i=0; i<COUNT; i++)
 	{
 		std::cout<<B[i]<<" ";
 	}
@@ -97,18 +98,18 @@ int main()
 
 
 	
-	queue.enqueueWriteBuffer(buffer_A, CL_FALSE, 0, SIZE*sizeof(int), A);
-	queue.enqueueWriteBuffer(buffer_B, CL_FALSE, 0, SIZE*sizeof(int), B);
+	queue.enqueueWriteBuffer(buffer_A, CL_FALSE, 0, COUNT*sizeof(int), A);
+	queue.enqueueWriteBuffer(buffer_B, CL_FALSE, 0, COUNT*sizeof(int), B);
 	queue.enqueueBarrierWithWaitList();
-	queue.enqueueNDRangeKernel(simple_add, cl::NullRange, cl::NDRange(SIZE, 1, 1), cl::NDRange(1, 1, 1), nullptr, nullptr);
+	queue.enqueueNDRangeKernel(simple_add, cl::NullRange, cl::NDRange(COUNT, 1, 1), cl::NDRange(1, 1, 1), nullptr, nullptr);
 	queue.enqueueBarrierWithWaitList();
-	queue.enqueueReadBuffer(buffer_C, CL_FALSE, 0, SIZE*sizeof(int), C);
+	queue.enqueueReadBuffer(buffer_C, CL_FALSE, 0, COUNT*sizeof(int), C);
 	queue.enqueueBarrierWithWaitList();
 	queue.finish();
 
 	std::cout<<"Result:"<<std::endl;
 	std::cout<<"\t";
-	for(int i=0; i<SIZE; i++)
+	for(int i=0; i<COUNT; i++)
 	{
 		std::cout<<C[i]<<" ";
 	}
