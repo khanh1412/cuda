@@ -48,9 +48,9 @@ int main()
 	cl::Context context({default_device});
 
 	//BUFFER
-	cl::Buffer buffer_A(context, CL_MEM_READ_ONLY, sizeof(int)*10);
-	cl::Buffer buffer_B(context, CL_MEM_READ_ONLY, sizeof(int)*10);
-	cl::Buffer buffer_C(context, CL_MEM_READ_WRITE, sizeof(int)*10);
+	cl::Buffer buffer_A(context, CL_MEM_READ_ONLY, COUNT*sizeof(int));
+	cl::Buffer buffer_B(context, CL_MEM_READ_ONLY, COUNT*sizeof(int));
+	cl::Buffer buffer_C(context, CL_MEM_READ_WRITE, COUNT*sizeof(int));
 
 	//PROGRAM
 	cl::Program::Sources sources;
