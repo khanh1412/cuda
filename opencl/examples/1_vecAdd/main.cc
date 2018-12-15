@@ -5,7 +5,7 @@
 #include<string>
 
 
-const int COUNT = 20;
+const int COUNT = 20000;
 
 std::string readKernel(const std::string& filepath)
 {
@@ -22,12 +22,12 @@ int main()
 	cl::Platform::get(&all_platforms);
 	if (0 == all_platforms.size())
 		throw std::runtime_error("No platforms found. Check OpenCL installation!");
-	/*
+
 	std::cout<<"All platforms:"<<std::endl;
 	for (auto& platform : all_platforms)
 		std::cout<<"\t"<<platform.getInfo<CL_PLATFORM_NAME>()<<std::endl;
-	*/
-	cl::Platform default_platform = all_platforms[1];
+
+	cl::Platform default_platform = all_platforms[0];
 	std::cout <<"Using platform: "<<default_platform.getInfo<CL_PLATFORM_NAME>()<<std::endl;
 
 	//DEVICES (HARDWARE)
@@ -36,11 +36,11 @@ int main()
 
 	if (0 == all_devices.size())
 		throw std::runtime_error("No devices found. Check OpenCL installation!");
-	/*
+
 	std::cout<<"Platform's devices:"<<std::endl;
 	for (auto& device : all_devices)
 		std::cout<<"\t"<<device.getInfo<CL_DEVICE_NAME>()<<std::endl;
-	*/
+
 	cl::Device default_device = all_devices[0];
 	std::cout<<"Using device: "<<default_device.getInfo<CL_DEVICE_NAME>()<<std::endl;
 
@@ -100,12 +100,12 @@ int main()
 	
 	queue.enqueueWriteBuffer(buffer_A, CL_FALSE, 0, COUNT*sizeof(int), A);
 	queue.enqueueWriteBuffer(buffer_B, CL_FALSE, 0, COUNT*sizeof(int), B);
-	queue.enqueueBarrierWithWaitList();
+	//queue.enqueueBarrierWithWaitList();
 	queue.enqueueNDRangeKernel(simple_add, cl::NullRange, cl::NDRange(COUNT, 1, 1), cl::NDRange(1, 1, 1), nullptr, nullptr);
-	queue.enqueueBarrierWithWaitList();
+	//queue.enqueueBarrierWithWaitList();
 	queue.enqueueReadBuffer(buffer_C, CL_FALSE, 0, COUNT*sizeof(int), C);
-	queue.enqueueBarrierWithWaitList();
-	queue.finish();
+	//queue.enqueueBarrierWithWaitList();
+	//queue.finish();
 
 	std::cout<<"Result:"<<std::endl;
 	std::cout<<"\t";
