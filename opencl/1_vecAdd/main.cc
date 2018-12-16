@@ -4,7 +4,7 @@
 #include<fstream>
 #include<string>
 
-#include<time.h>
+#include<ctime>
 
 std::string readKernel(const std::string& filepath)
 {
@@ -14,7 +14,7 @@ std::string readKernel(const std::string& filepath)
 	return content;
 }
 
-void CLAdd(float *C, float *A, float *B, uint64_t COUNT)
+void clAdd(float *C, float *A, float *B, uint64_t COUNT)
 {
 	//PLATFORMS (OPENCL SOFTWARE)
 	std::vector<cl::Platform> all_platforms;
@@ -51,7 +51,11 @@ void CLAdd(float *C, float *A, float *B, uint64_t COUNT)
 	cl::Buffer buffer_B(context, CL_MEM_READ_ONLY, COUNT*sizeof(float));
 	cl::Buffer buffer_C(context, CL_MEM_READ_WRITE, COUNT*sizeof(float));
 
-	//PROGRAM
+	//CREATE QUEUE
+	cl::CommandQueue queue(context, default_device);
+
+	//COMPILE PROGRAM
+	auto t1 = std::clock();
 	cl::Program::Sources sources;
 
 	std::string kernel_code = readKernel("simple_add.cl.c");
@@ -68,23 +72,37 @@ void CLAdd(float *C, float *A, float *B, uint64_t COUNT)
 	simple_add.setArg(1, buffer_B);
 	simple_add.setArg(2, buffer_C);
 
-	//RUN
-	cl::CommandQueue queue(context, default_device);
+
+	//COPY HOST TO DEVICE
 
 	queue.enqueueWriteBuffer(buffer_A, CL_FALSE, 0, COUNT*sizeof(float), A);
 	queue.enqueueWriteBuffer(buffer_B, CL_FALSE, 0, COUNT*sizeof(float), B);
-
-
+	//CALL THE KERNEL
 	queue.enqueueNDRangeKernel(simple_add, cl::NullRange, cl::NDRange(COUNT, 1, 1), cl::NDRange(1, 1, 1), nullptr, nullptr);
-
-
+	//COPY DEVICE TO HOST
 	queue.enqueueReadBuffer(buffer_C, CL_FALSE, 0, COUNT*sizeof(float), C);
 
 	//queue.enqueueBarrierWithWaitList();
 	queue.finish();
+	auto t2 = std::clock();
+	std::cout<<"CL time: "<<t2-t1<<" ticks"<<std::endl;
 
 }
-const uint64_t COUNT = 200;
+
+
+void nativeAdd(float *C, float *A, float *B, uint64_t COUNT)
+{
+	auto t1 = std::clock();
+	for (uint64_t i = 0; i < COUNT; i++)
+		C[i] = A[i] + B[i];
+	auto t2 = std::clock();
+	std::cout<<"Native time: "<<t2-t1<<" ticks"<<std::endl;
+
+}
+
+
+
+const uint64_t COUNT = 100000000;
 
 int main()
 {
@@ -98,29 +116,8 @@ int main()
 		B[i] = COUNT - i;
 	}
 
-	CLAdd(C, A, B, COUNT);
+	clAdd(C, A, B, COUNT);
 	
-	std::cout<<"A:"<<std::endl;
-	std::cout<<"\t";
-	for(int i=0; i<COUNT; i++)
-	{
-		std::cout<<A[i]<<" ";
-	}
-	std::cout<<std::endl;
-	std::cout<<"B:"<<std::endl;
-	std::cout<<"\t";
-	for(int i=0; i<COUNT; i++)
-	{
-		std::cout<<B[i]<<" ";
-	}
-	std::cout<<std::endl;
-	std::cout<<"Result:"<<std::endl;
-	std::cout<<"\t";
-	for(int i=0; i<COUNT; i++)
-	{
-		std::cout<<C[i]<<" ";
-	}
-	std::cout<<std::endl;
 	delete A; delete B; delete C;
 	return 0;
 }
