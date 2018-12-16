@@ -28,7 +28,7 @@ int main()
 	for (auto& platform : all_platforms)
 		std::cout<<"\t"<<platform.getInfo<CL_PLATFORM_NAME>()<<std::endl;
 
-	cl::Platform default_platform = all_platforms[0];
+	cl::Platform default_platform = all_platforms[1];
 	std::cout <<"Using platform: "<<default_platform.getInfo<CL_PLATFORM_NAME>()<<std::endl;
 
 	//DEVICES (HARDWARE)
@@ -85,12 +85,11 @@ int main()
 
 	queue.enqueueWriteBuffer(buffer_A, CL_FALSE, 0, COUNT*sizeof(int), A);
 	queue.enqueueWriteBuffer(buffer_B, CL_FALSE, 0, COUNT*sizeof(int), B);
-	//queue.enqueueBarrierWithWaitList();
 	queue.enqueueNDRangeKernel(simple_add, cl::NullRange, cl::NDRange(COUNT, 1, 1), cl::NDRange(1, 1, 1), nullptr, nullptr);
-	//queue.enqueueBarrierWithWaitList();
+	queue.enqueueBarrierWithWaitList();
 	queue.enqueueReadBuffer(buffer_C, CL_FALSE, 0, COUNT*sizeof(int), C);
 	//queue.enqueueBarrierWithWaitList();
-	//queue.finish();
+	queue.finish();
 
 	std::cout<<"A:"<<std::endl;
 	std::cout<<"\t";
