@@ -1,4 +1,5 @@
 *.swp
 *~
 *.dll
-*.exe
+run.exe
+run

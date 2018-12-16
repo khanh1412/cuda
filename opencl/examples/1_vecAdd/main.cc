@@ -6,7 +6,7 @@
 
 #include<time.h>
 
-const int COUNT = 50;
+const int COUNT = 200;
 
 std::string readKernel(const std::string& filepath)
 {
@@ -28,7 +28,7 @@ int main()
 	for (auto& platform : all_platforms)
 		std::cout<<"\t"<<platform.getInfo<CL_PLATFORM_NAME>()<<std::endl;
 
-	cl::Platform default_platform = all_platforms[0];
+	cl::Platform default_platform = all_platforms[2];
 	std::cout <<"Using platform: "<<default_platform.getInfo<CL_PLATFORM_NAME>()<<std::endl;
 
 	//DEVICES (HARDWARE)
@@ -93,7 +93,7 @@ int main()
 	queue.enqueueReadBuffer(buffer_C, CL_FALSE, 0, COUNT*sizeof(int), C);
 
 	//queue.enqueueBarrierWithWaitList();
-	queue.finish();
+	//queue.finish();
 
 	std::cout<<"A:"<<std::endl;
 	std::cout<<"\t";
