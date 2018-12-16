@@ -4,9 +4,9 @@
 #include<fstream>
 #include<string>
 
+#include<time.h>
 
-
-const int COUNT = 200;
+const int COUNT = 50;
 
 std::string readKernel(const std::string& filepath)
 {
@@ -82,7 +82,6 @@ int main()
 		A[i] = i + 1;
 		B[i] = COUNT - i;
 	}
-
 
 	queue.enqueueWriteBuffer(buffer_A, CL_FALSE, 0, COUNT*sizeof(int), A);
 	queue.enqueueWriteBuffer(buffer_B, CL_FALSE, 0, COUNT*sizeof(int), B);
