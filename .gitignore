@@ -1,5 +1,4 @@
-run
-a.out
-*.o
-*.so
 *.swp
+*~
+*.dll
+*.exe
