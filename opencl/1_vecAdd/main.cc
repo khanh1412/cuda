@@ -6,8 +6,6 @@
 
 #include<time.h>
 
-const int COUNT = 200;
-
 std::string readKernel(const std::string& filepath)
 {
 	std::ifstream ifs(filepath);
@@ -16,7 +14,7 @@ std::string readKernel(const std::string& filepath)
 	return content;
 }
 
-int main()
+void CLAdd(float *C, float *A, float *B, uint64_t COUNT)
 {
 	//PLATFORMS (OPENCL SOFTWARE)
 	std::vector<cl::Platform> all_platforms;
@@ -28,7 +26,7 @@ int main()
 	for (auto& platform : all_platforms)
 		std::cout<<"\t"<<platform.getInfo<CL_PLATFORM_NAME>()<<std::endl;
 
-	cl::Platform default_platform = all_platforms[2];
+	cl::Platform default_platform = all_platforms[0];
 	std::cout <<"Using platform: "<<default_platform.getInfo<CL_PLATFORM_NAME>()<<std::endl;
 
 	//DEVICES (HARDWARE)
@@ -49,9 +47,9 @@ int main()
 	cl::Context context({default_device});
 
 	//BUFFER
-	cl::Buffer buffer_A(context, CL_MEM_READ_ONLY, COUNT*sizeof(int));
-	cl::Buffer buffer_B(context, CL_MEM_READ_ONLY, COUNT*sizeof(int));
-	cl::Buffer buffer_C(context, CL_MEM_READ_WRITE, COUNT*sizeof(int));
+	cl::Buffer buffer_A(context, CL_MEM_READ_ONLY, COUNT*sizeof(float));
+	cl::Buffer buffer_B(context, CL_MEM_READ_ONLY, COUNT*sizeof(float));
+	cl::Buffer buffer_C(context, CL_MEM_READ_WRITE, COUNT*sizeof(float));
 
 	//PROGRAM
 	cl::Program::Sources sources;
@@ -73,28 +71,35 @@ int main()
 	//RUN
 	cl::CommandQueue queue(context, default_device);
 
-		//generate data
-	int *A = new int[COUNT];
-	int *B = new int[COUNT];
-	int *C = new int[COUNT];
+	queue.enqueueWriteBuffer(buffer_A, CL_FALSE, 0, COUNT*sizeof(float), A);
+	queue.enqueueWriteBuffer(buffer_B, CL_FALSE, 0, COUNT*sizeof(float), B);
+
+
+	queue.enqueueNDRangeKernel(simple_add, cl::NullRange, cl::NDRange(COUNT, 1, 1), cl::NDRange(1, 1, 1), nullptr, nullptr);
+
+
+	queue.enqueueReadBuffer(buffer_C, CL_FALSE, 0, COUNT*sizeof(float), C);
+
+	//queue.enqueueBarrierWithWaitList();
+	queue.finish();
+
+}
+const uint64_t COUNT = 200;
+
+int main()
+{
+	//generate data
+	auto *A = new float[COUNT];
+	auto *B = new float[COUNT];
+	auto *C = new float[COUNT];
 	for (int i=0; i<COUNT; i++)
 	{
 		A[i] = i + 1;
 		B[i] = COUNT - i;
 	}
 
-	queue.enqueueWriteBuffer(buffer_A, CL_FALSE, 0, COUNT*sizeof(int), A);
-	queue.enqueueWriteBuffer(buffer_B, CL_FALSE, 0, COUNT*sizeof(int), B);
-
-
-	queue.enqueueNDRangeKernel(simple_add, cl::NullRange, cl::NDRange(COUNT, 1, 1), cl::NDRange(1, 1, 1), nullptr, nullptr);
-
-
-	queue.enqueueReadBuffer(buffer_C, CL_FALSE, 0, COUNT*sizeof(int), C);
-
-	//queue.enqueueBarrierWithWaitList();
-	//queue.finish();
-
+	CLAdd(C, A, B, COUNT);
+	
 	std::cout<<"A:"<<std::endl;
 	std::cout<<"\t";
 	for(int i=0; i<COUNT; i++)
@@ -119,3 +124,4 @@ int main()
 	delete A; delete B; delete C;
 	return 0;
 }
+
