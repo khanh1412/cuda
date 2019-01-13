@@ -12,9 +12,9 @@ void print(int a[], int n)
 	{
 		perm[count] = a[i];
 		count++;
-		std::cout<<a[i]<<" ";
+//		std::cout<<a[i]<<" ";
 	}
-	std::cout<<std::endl;
+//	std::cout<<std::endl;
 }
 
 void heapPermutation(int a[], int size, int n)

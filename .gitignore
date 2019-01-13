@@ -3,3 +3,4 @@
 *.dll
 run.exe
 run
+*.out
